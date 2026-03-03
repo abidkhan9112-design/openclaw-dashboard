@@ -1,8 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedBackground } from "@/components/animated-background";
 import { Header } from "@/components/header";
+import { SectionNav, type SectionId } from "@/components/layout/section-nav";
+import { HeroStatus } from "@/components/features/hero-status";
 import { ChannelCard } from "@/components/channel-card";
 import { ModelChain } from "@/components/model-chain";
 import { SkillGrid } from "@/components/skill-grid";
@@ -11,76 +14,109 @@ import { MemoryStats } from "@/components/memory-stats";
 import { DeploymentStatus } from "@/components/deployment-status";
 import { CostTracker } from "@/components/cost-tracker";
 import { SystemHealth } from "@/components/system-health";
+import { ChatConsole } from "@/components/features/chat-console";
 import { FunFactBanner } from "@/components/fun-easter-egg";
+import { ToastProvider } from "@/components/ui/toast-notification";
 import { CHANNELS } from "@/lib/openclaw-data";
 
 export default function MissionControl() {
+  const [activeSection, setActiveSection] = useState<SectionId>("overview");
+
   return (
-    <div className="min-h-screen">
-      <AnimatedBackground />
-      <Header />
+    <ToastProvider>
+      <div className="min-h-screen">
+        <AnimatedBackground />
+        <Header />
+        <SectionNav active={activeSection} onChange={setActiveSection} />
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* ───── Fun Fact Banner ───── */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6"
-        >
-          <FunFactBanner />
-        </motion.section>
+        <main className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+          <AnimatePresence mode="wait">
+            {activeSection === "overview" && (
+              <SectionPanel key="overview">
+                {/* Hero Status */}
+                <HeroStatus />
 
-        {/* ───── Section: Channel Status ───── */}
-        <SectionHeader title="Channels" subtitle="Live messaging platforms" />
-        <div className="mb-8 grid gap-4 md:grid-cols-3">
-          {CHANNELS.map((channel, i) => (
-            <ChannelCard key={channel.id} channel={channel} index={i} />
-          ))}
-        </div>
+                {/* Fun Fact Banner */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                  <FunFactBanner />
+                </motion.div>
 
-        {/* ───── Section: AI Model Chain ───── */}
-        <SectionHeader
-          title="AI Model Stack"
-          subtitle="Fallback routing chain"
-        />
-        <div className="mb-8">
-          <ModelChain />
-        </div>
+                {/* Channel Status */}
+                <SectionHeader title="Channels" subtitle="Live messaging platforms" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  {CHANNELS.map((channel, i) => (
+                    <ChannelCard key={channel.id} channel={channel} index={i} />
+                  ))}
+                </div>
 
-        {/* ───── Section: Activity + Memory + Deploy + Cost (Bento Grid) ───── */}
-        <SectionHeader
-          title="Operations"
-          subtitle="Activity, memory, deployment & costs"
-        />
-        <div className="mb-8 grid gap-4 lg:grid-cols-2">
-          <ActivityChart />
-          <MemoryStats />
-        </div>
-        <div className="mb-8 grid gap-4 md:grid-cols-3">
-          <DeploymentStatus />
-          <CostTracker />
-          <SystemHealth />
-        </div>
+                {/* Activity + Memory */}
+                <SectionHeader title="Activity" subtitle="Message throughput & memory" />
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <ActivityChart />
+                  <MemoryStats />
+                </div>
+              </SectionPanel>
+            )}
 
-        {/* ───── Section: Skills Grid ───── */}
-        <SectionHeader
-          title="Skills & Plugins"
-          subtitle="Installed capabilities"
-        />
-        <div className="mb-8">
-          <SkillGrid />
-        </div>
-      </main>
+            {activeSection === "models" && (
+              <SectionPanel key="models">
+                <SectionHeader title="AI Model Stack" subtitle="Fallback routing chain with model selection" />
+                <ModelChain />
+              </SectionPanel>
+            )}
 
-      {/* ───── Footer ───── */}
-      <footer className="border-t border-zinc-200/50 py-6 text-center dark:border-white/[0.05]">
-        <p className="text-xs text-zinc-400">
-          OpenClaw Mission Control · Built with Next.js, Tailwind CSS, Framer
-          Motion & Recharts
-        </p>
-      </footer>
-    </div>
+            {activeSection === "skills" && (
+              <SectionPanel key="skills">
+                <SectionHeader title="Skills & Plugins" subtitle="Toggle and manage installed capabilities" />
+                <SkillGrid />
+              </SectionPanel>
+            )}
+
+            {activeSection === "operations" && (
+              <SectionPanel key="operations">
+                <SectionHeader title="Operations" subtitle="Deployment, costs & system health" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  <DeploymentStatus />
+                  <CostTracker />
+                  <SystemHealth />
+                </div>
+              </SectionPanel>
+            )}
+
+            {activeSection === "console" && (
+              <SectionPanel key="console">
+                <ChatConsole />
+              </SectionPanel>
+            )}
+          </AnimatePresence>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-zinc-200/50 py-6 text-center dark:border-white/[0.04]">
+          <p className="text-[10px] text-zinc-400 font-data">
+            OpenClaw Mission Control v2.0 · Next.js · Tailwind · Framer Motion · Recharts
+          </p>
+        </footer>
+      </div>
+    </ToastProvider>
+  );
+}
+
+function SectionPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -92,15 +128,11 @@ function SectionHeader({
   subtitle: string;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="mb-4"
-    >
+    <div>
       <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
         {title}
       </h2>
       <p className="text-xs text-zinc-500">{subtitle}</p>
-    </motion.div>
+    </div>
   );
 }

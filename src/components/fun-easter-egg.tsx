@@ -3,18 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Confetti particles that burst on interaction
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
-  size: number;
-  angle: number;
-  velocity: number;
-}
-
-const COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899", "#3b82f6"];
+const COLORS = ["#22d3ee", "#a855f7", "#10b981", "#f59e0b", "#fb7185", "#3b82f6"];
 
 export function ConfettiBurst({ trigger }: { trigger: boolean }) {
   return (
@@ -29,12 +18,7 @@ export function ConfettiBurst({ trigger }: { trigger: boolean }) {
             return (
               <motion.div
                 key={i}
-                initial={{
-                  x: "50vw",
-                  y: "50vh",
-                  opacity: 1,
-                  scale: 1,
-                }}
+                initial={{ x: "50vw", y: "50vh", opacity: 1, scale: 1 }}
                 animate={{
                   x: `calc(50vw + ${Math.cos(angle) * velocity}px)`,
                   y: `calc(50vh + ${Math.sin(angle) * velocity}px)`,
@@ -60,7 +44,6 @@ export function ConfettiBurst({ trigger }: { trigger: boolean }) {
   );
 }
 
-// Clickable fun fact banner
 const FACTS = [
   "Your bot has processed over 1,200 messages this month",
   "Gemini 3.1 Pro handles 85% of all requests",
@@ -87,9 +70,9 @@ export function FunFactBanner() {
       <ConfettiBurst trigger={showConfetti} />
       <motion.button
         onClick={nextFact}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="group w-full rounded-2xl border border-zinc-200/60 bg-gradient-to-r from-cyan-50 via-violet-50 to-pink-50 p-4 text-left transition-all hover:shadow-md dark:border-white/[0.08] dark:from-cyan-500/[0.06] dark:via-violet-500/[0.06] dark:to-pink-500/[0.06]"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="group w-full rounded-2xl border border-zinc-200/60 bg-gradient-to-r from-cyan-50/50 via-violet-50/50 to-pink-50/50 p-4 text-left transition-all hover:shadow-md dark:border-white/[0.06] dark:from-cyan-500/[0.04] dark:via-violet-500/[0.04] dark:to-pink-500/[0.04] dark:hover:border-white/[0.1]"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -113,7 +96,7 @@ export function FunFactBanner() {
               </motion.p>
             </AnimatePresence>
           </div>
-          <span className="text-xs text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="text-[10px] text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100">
             Click for more
           </span>
         </div>

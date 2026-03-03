@@ -22,6 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { GlassCard } from "./glass-card";
 import { StatusPulse } from "./status-pulse";
+import { ToggleSwitch } from "./ui/toggle-switch";
+import { useToast } from "./ui/toast-notification";
 import { SKILLS, type Skill, type SkillCategory } from "@/lib/openclaw-data";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -63,20 +65,28 @@ const filters: (SkillCategory | "all")[] = [
 ];
 
 export function SkillGrid() {
-  const [activeFilter, setActiveFilter] = useState<SkillCategory | "all">(
-    "all"
+  const [activeFilter, setActiveFilter] = useState<SkillCategory | "all">("all");
+  const [skillStates, setSkillStates] = useState<Record<string, boolean>>(
+    Object.fromEntries(SKILLS.map((s) => [s.id, s.status === "active"]))
   );
+  const { toast } = useToast();
 
   const filtered =
     activeFilter === "all"
       ? SKILLS
       : SKILLS.filter((s) => s.category === activeFilter);
 
+  const activeCount = Object.values(skillStates).filter(Boolean).length;
   const totalUsage = SKILLS.reduce((sum, s) => sum + s.usageLast24h, 0);
-  const activeCount = SKILLS.filter((s) => s.status === "active").length;
+
+  function handleToggle(skillId: string, enabled: boolean) {
+    setSkillStates((prev) => ({ ...prev, [skillId]: enabled }));
+    const skill = SKILLS.find((s) => s.id === skillId);
+    toast(`${skill?.name} ${enabled ? "enabled" : "disabled"}`, enabled ? "success" : "info");
+  }
 
   return (
-    <GlassCard delay={0.4} className="col-span-full">
+    <GlassCard delay={0.2} glow="violet" className="col-span-full">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg shadow-violet-500/20">
@@ -87,7 +97,7 @@ export function SkillGrid() {
               Skills & Plugins
             </h2>
             <p className="text-xs text-zinc-500">
-              {activeCount} active · {totalUsage} invocations (24h)
+              <span className="font-data">{activeCount}</span> active · <span className="font-data">{totalUsage}</span> invocations (24h)
             </p>
           </div>
         </div>
@@ -116,7 +126,12 @@ export function SkillGrid() {
       <motion.div layout className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         <AnimatePresence mode="popLayout">
           {filtered.map((skill) => (
-            <SkillTile key={skill.id} skill={skill} />
+            <SkillTile
+              key={skill.id}
+              skill={skill}
+              enabled={skillStates[skill.id] ?? true}
+              onToggle={(v) => handleToggle(skill.id, v)}
+            />
           ))}
         </AnimatePresence>
       </motion.div>
@@ -124,33 +139,47 @@ export function SkillGrid() {
   );
 }
 
-function SkillTile({ skill }: { skill: Skill }) {
+function SkillTile({
+  skill,
+  enabled,
+  onToggle,
+}: {
+  skill: Skill;
+  enabled: boolean;
+  onToggle: (v: boolean) => void;
+}) {
   const color = categoryColors[skill.category];
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={{ opacity: enabled ? 1 : 0.5, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
       whileHover={{ scale: 1.03, y: -2 }}
       className={cn(
-        "group relative cursor-default rounded-xl border p-3 transition-colors",
-        "border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100/80",
-        "dark:border-white/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.06]"
+        "group relative rounded-xl border p-3 transition-all",
+        enabled
+          ? "border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-white/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.06]"
+          : "border-zinc-100/50 bg-zinc-50/20 dark:border-white/[0.03] dark:bg-white/[0.01]"
       )}
     >
       <div className="flex items-start justify-between">
         <div
           className="flex h-8 w-8 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${color}15` }}
+          style={{ backgroundColor: `${color}${enabled ? "15" : "08"}` }}
         >
-          <span style={{ color }}>{iconMap[skill.icon] || <Zap size={18} />}</span>
+          <span style={{ color: enabled ? color : `${color}80` }}>
+            {iconMap[skill.icon] || <Zap size={18} />}
+          </span>
         </div>
-        <StatusPulse status={skill.status} size="sm" />
+        <ToggleSwitch checked={enabled} onChange={onToggle} size="sm" />
       </div>
-      <h3 className="mt-2 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+      <h3 className={cn(
+        "mt-2 text-xs font-semibold",
+        enabled ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-400 dark:text-zinc-500"
+      )}>
         {skill.name}
       </h3>
       <p className="mt-0.5 text-[10px] leading-tight text-zinc-500">
@@ -159,11 +188,11 @@ function SkillTile({ skill }: { skill: Skill }) {
       <div className="mt-2 flex items-center justify-between">
         <span
           className="rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
-          style={{ backgroundColor: `${color}15`, color }}
+          style={{ backgroundColor: `${color}${enabled ? "15" : "08"}`, color: enabled ? color : `${color}80` }}
         >
           {skill.category}
         </span>
-        <span className="text-[10px] font-medium text-zinc-400">
+        <span className="text-[10px] font-medium text-zinc-400 font-data">
           {skill.usageLast24h} calls
         </span>
       </div>

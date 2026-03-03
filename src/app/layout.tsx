@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "OpenClaw Mission Control",
   description:
-    "Real-time monitoring dashboard for your OpenClaw AI chatbot — channels, models, skills, memory, and deployments.",
+    "Interactive command center for your OpenClaw AI chatbot — channels, models, skills, memory, deployments & live console.",
   icons: { icon: "/favicon.ico" },
 };
 

@@ -11,7 +11,7 @@ export function MemoryStats() {
   );
 
   return (
-    <GlassCard delay={0.55}>
+    <GlassCard delay={0.35} glow="rose">
       <div className="mb-4 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-pink-500/20">
           <Brain size={20} className="text-white" />
@@ -25,23 +25,18 @@ export function MemoryStats() {
       </div>
 
       <div className="space-y-4">
-        {/* Docs indexed */}
         <StatRow
           icon={<Search size={14} />}
           label="Indexed Documents"
           value={MEMORY.indexedDocuments.toLocaleString()}
           color="text-cyan-500"
         />
-
-        {/* Search latency */}
         <StatRow
           icon={<Clock size={14} />}
           label="Search Latency"
           value={`${MEMORY.searchLatencyMs}ms`}
           color="text-emerald-500"
         />
-
-        {/* Embedding model */}
         <StatRow
           icon={<Brain size={14} />}
           label="Embedding Model"
@@ -56,7 +51,7 @@ export function MemoryStats() {
               <HardDrive size={14} />
               <span className="text-xs">Volume Storage</span>
             </div>
-            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+            <span className="text-xs font-medium text-zinc-600 font-data dark:text-zinc-400">
               {MEMORY.volumeUsedMB}MB / {(MEMORY.volumeTotalMB / 1024).toFixed(0)}GB
             </span>
           </div>
@@ -64,21 +59,17 @@ export function MemoryStats() {
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${usagePct}%` }}
-              transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
-              className="h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500"
+              transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+              className="h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.3)]"
             />
           </div>
-          <p className="mt-1 text-right text-[10px] text-zinc-400">
+          <p className="mt-1 text-right text-[10px] text-zinc-400 font-data">
             {usagePct}% used
           </p>
         </div>
 
-        {/* Config badges */}
         <div className="flex flex-wrap gap-1.5">
-          <ConfigBadge
-            active={MEMORY.sessionMemory}
-            label="Session Memory"
-          />
+          <ConfigBadge active={MEMORY.sessionMemory} label="Session Memory" />
           <ConfigBadge active label={`TTL: ${MEMORY.cacheTTL}`} />
         </div>
       </div>
@@ -103,21 +94,15 @@ function StatRow({
         {icon}
         <span className="text-xs">{label}</span>
       </div>
-      <span className={`text-sm font-bold ${color}`}>{value}</span>
+      <span className={`text-sm font-bold font-data ${color}`}>{value}</span>
     </div>
   );
 }
 
-function ConfigBadge({
-  active,
-  label,
-}: {
-  active: boolean;
-  label: string;
-}) {
+function ConfigBadge({ active, label }: { active: boolean; label: string }) {
   return (
     <span
-      className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${
+      className={`rounded-md px-2 py-0.5 text-[10px] font-medium font-data ${
         active
           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
           : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
