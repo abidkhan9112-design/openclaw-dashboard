@@ -9,7 +9,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# v3.3 cache bust — HEAD-based gateway health check
+# v4.0 cache bust — per-model testing, shared gateway status, mobile UX
 RUN npm run build
 
 # ─── Stage 3: Production ─────────────────────────────────

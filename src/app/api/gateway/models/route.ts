@@ -1,74 +1,103 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL || "http://localhost:18789";
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || "";
 
+export const dynamic = "force-dynamic";
+
+// GET /api/gateway/models — check gateway connectivity
 export async function GET() {
   try {
-    // Quick connectivity check via HEAD (fast, no body)
-    const headRes = await fetch(GATEWAY_URL, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(6000),
+    const res = await fetch(GATEWAY_URL, {
+      method: "GET",
+      signal: AbortSignal.timeout(8000),
+      headers: { "Cache-Control": "no-cache" },
     });
 
-    if (!headRes.ok) {
-      return NextResponse.json(
-        { ok: false, error: `Gateway returned ${headRes.status}`, gatewayOnline: false },
-        { status: 502 }
-      );
+    if (res.ok || res.status < 500) {
+      return NextResponse.json({ ok: true, gatewayOnline: true });
     }
 
-    // Gateway is alive — try a fast model check via chat completions
+    return NextResponse.json({ ok: false, gatewayOnline: false }, { status: 502 });
+  } catch {
+    return NextResponse.json({ ok: false, gatewayOnline: false }, { status: 503 });
+  }
+}
+
+// POST /api/gateway/models — test a specific model
+// Body: { modelId: string }
+export async function POST(req: NextRequest) {
+  try {
+    const { modelId } = await req.json();
+    if (!modelId || typeof modelId !== "string") {
+      return NextResponse.json({ error: "modelId required" }, { status: 400 });
+    }
+
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (GATEWAY_TOKEN) headers["Authorization"] = `Bearer ${GATEWAY_TOKEN}`;
 
-    try {
-      const start = Date.now();
-      const chatRes = await fetch(`${GATEWAY_URL}/v1/chat/completions`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          model: "default",
-          messages: [{ role: "user", content: "ping" }],
-          max_tokens: 1,
-        }),
-        signal: AbortSignal.timeout(15000),
-      });
-      const latencyMs = Date.now() - start;
+    const start = Date.now();
+    const res = await fetch(`${GATEWAY_URL}/v1/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: modelId,
+        messages: [{ role: "user", content: "." }],
+        max_tokens: 1,
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const latencyMs = Date.now() - start;
 
-      if (chatRes.ok) {
-        const data = await chatRes.json();
-        return NextResponse.json({
-          ok: true,
-          gatewayOnline: true,
-          activeModel: data.model || "default",
-          latencyMs,
-          models: null,
-        });
-      }
-
-      // Chat failed but gateway is up
+    if (res.ok) {
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || "";
       return NextResponse.json({
         ok: true,
-        gatewayOnline: true,
-        activeModel: null,
-        chatError: `Chat returned ${chatRes.status}`,
-        models: null,
-      });
-    } catch {
-      // Chat timed out but gateway HEAD was fine
-      return NextResponse.json({
-        ok: true,
-        gatewayOnline: true,
-        activeModel: null,
-        chatError: "Chat request timed out — models may be slow",
-        models: null,
+        modelId,
+        status: "healthy",
+        latencyMs,
+        reason: `Model responded successfully in ${(latencyMs / 1000).toFixed(1)}s.`,
+        reply: reply.slice(0, 100),
       });
     }
-  } catch {
-    return NextResponse.json(
-      { ok: false, error: "Gateway unreachable", gatewayOnline: false },
-      { status: 503 }
-    );
+
+    // Parse error to give a human-readable reason
+    const errorText = await res.text().catch(() => "");
+    let reason = `Model returned HTTP ${res.status}.`;
+
+    if (res.status === 401 || res.status === 403) {
+      reason = "Authentication failed. The API key for this model's provider may be invalid or expired.";
+    } else if (res.status === 429) {
+      reason = "Rate limit exceeded. This model has hit its usage cap. Try again later or switch to another model.";
+    } else if (res.status === 404) {
+      reason = "Model not found. It may not be configured in the gateway or the model ID is incorrect.";
+    } else if (res.status === 503) {
+      reason = "Model service is temporarily unavailable. The provider may be experiencing downtime.";
+    } else if (errorText.toLowerCase().includes("key")) {
+      reason = `API key issue: ${errorText.slice(0, 200)}`;
+    } else if (errorText.toLowerCase().includes("quota") || errorText.toLowerCase().includes("limit")) {
+      reason = `Usage limit reached: ${errorText.slice(0, 200)}`;
+    } else if (errorText) {
+      reason = errorText.slice(0, 300);
+    }
+
+    return NextResponse.json({
+      ok: false,
+      modelId,
+      status: res.status === 429 ? "degraded" : "error",
+      latencyMs,
+      reason,
+    });
+  } catch (err) {
+    const isTimeout = String(err).includes("abort") || String(err).includes("timeout");
+    return NextResponse.json({
+      ok: false,
+      modelId: "unknown",
+      status: "unreachable",
+      reason: isTimeout
+        ? "Request timed out after 20 seconds. The model may be overloaded or the gateway is too slow to respond."
+        : "Failed to connect to the gateway. The bot service may be down.",
+    });
   }
 }

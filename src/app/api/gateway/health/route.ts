@@ -2,16 +2,25 @@ import { NextResponse } from "next/server";
 
 const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL || "http://localhost:18789";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
-    // OpenClaw gateway serves its web UI on GET/HEAD — if it responds, it's alive.
-    // We use HEAD to avoid downloading the full HTML body.
+    // GET the gateway root — if it responds (even with HTML), it's alive.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
     const res = await fetch(GATEWAY_URL, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(8000),
+      method: "GET",
+      signal: controller.signal,
+      // Prevent caching
+      headers: { "Cache-Control": "no-cache" },
     });
 
-    if (res.ok) {
+    clearTimeout(timeout);
+
+    if (res.ok || res.status < 500) {
       return NextResponse.json({
         ok: true,
         status: "online",

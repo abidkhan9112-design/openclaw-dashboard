@@ -1,23 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Bot, Zap, Clock, MessageSquare, Brain, Shield, WifiOff } from "lucide-react";
 import { StatusPulse } from "../status-pulse";
+import { useGatewayStatus } from "@/lib/use-gateway-status";
 import { GATEWAY, MEMORY, CHANNELS, MODELS, SKILLS, COST_DATA } from "@/lib/openclaw-data";
 
 export function HeroStatus() {
   const totalMessages = CHANNELS.reduce((sum, c) => sum + c.messagesLast24h, 0);
   const activeSkills = SKILLS.filter((s) => s.status === "active").length;
   const primaryModel = MODELS.find((m) => m.role === "primary");
-  const [gatewayOnline, setGatewayOnline] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetch("/api/gateway/health")
-      .then((r) => r.json())
-      .then((d) => setGatewayOnline(d.ok === true))
-      .catch(() => setGatewayOnline(false));
-  }, []);
+  const { online: gatewayOnline } = useGatewayStatus();
 
   return (
     <motion.div

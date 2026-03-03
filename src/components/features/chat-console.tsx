@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "../glass-card";
 import { cn } from "@/lib/utils";
+import { useGatewayStatus } from "@/lib/use-gateway-status";
 
 interface Message {
   id: number;
@@ -28,18 +29,10 @@ export function ChatConsole() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [gatewayOnline, setGatewayOnline] = useState<boolean | null>(null);
+  const { online: gatewayOnline } = useGatewayStatus();
   const [showScrollDown, setShowScrollDown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Check gateway status on mount
-  useEffect(() => {
-    fetch("/api/gateway/health")
-      .then((r) => r.json())
-      .then((d) => setGatewayOnline(d.ok === true))
-      .catch(() => setGatewayOnline(false));
-  }, []);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -80,7 +73,6 @@ export function ChatConsole() {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setGatewayOnline(true);
 
       setMessages((prev) => [
         ...prev,
@@ -92,7 +84,6 @@ export function ChatConsole() {
         },
       ]);
     } catch {
-      setGatewayOnline(false);
       setMessages((prev) => [
         ...prev,
         {

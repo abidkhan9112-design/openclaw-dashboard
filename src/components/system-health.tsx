@@ -1,27 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Cpu, HardDrive, Activity, Users, Radio, WifiOff, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "./glass-card";
 import { StatusPulse } from "./status-pulse";
+import { useGatewayStatus } from "@/lib/use-gateway-status";
 import { SYSTEM_HEALTH, GATEWAY } from "@/lib/openclaw-data";
 
 export function SystemHealth() {
-  const [gatewayOnline, setGatewayOnline] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    function check() {
-      fetch("/api/gateway/health")
-        .then((r) => r.json())
-        .then((d) => setGatewayOnline(d.ok === true))
-        .catch(() => setGatewayOnline(false));
-    }
-    check();
-    const interval = setInterval(check, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { online: gatewayOnline } = useGatewayStatus();
 
   return (
     <GlassCard delay={0.4} glow="blue">

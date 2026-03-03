@@ -17,12 +17,14 @@ import { SystemHealth } from "@/components/system-health";
 import { ChatConsole } from "@/components/features/chat-console";
 import { FunFactBanner } from "@/components/fun-easter-egg";
 import { ToastProvider } from "@/components/ui/toast-notification";
+import { GatewayStatusProvider } from "@/lib/use-gateway-status";
 import { CHANNELS } from "@/lib/openclaw-data";
 
 export default function MissionControl() {
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
 
   return (
+    <GatewayStatusProvider>
     <ToastProvider>
       <div className="min-h-screen">
         <AnimatedBackground />
@@ -103,6 +105,7 @@ export default function MissionControl() {
         </footer>
       </div>
     </ToastProvider>
+    </GatewayStatusProvider>
   );
 }
 
