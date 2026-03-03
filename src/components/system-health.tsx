@@ -1,13 +1,28 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Cpu, HardDrive, Activity, Users, Radio } from "lucide-react";
+import { Cpu, HardDrive, Activity, Users, Radio, WifiOff, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "./glass-card";
 import { StatusPulse } from "./status-pulse";
 import { SYSTEM_HEALTH, GATEWAY } from "@/lib/openclaw-data";
 
 export function SystemHealth() {
+  const [gatewayOnline, setGatewayOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    function check() {
+      fetch("/api/gateway/health")
+        .then((r) => r.json())
+        .then((d) => setGatewayOnline(d.ok === true))
+        .catch(() => setGatewayOnline(false));
+    }
+    check();
+    const interval = setInterval(check, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <GlassCard delay={0.4} glow="blue">
       <div className="mb-4 flex items-center gap-3">
@@ -94,16 +109,39 @@ export function SystemHealth() {
           </div>
         </div>
 
+        {/* Dynamic heartbeat indicator */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-zinc-500">
             <Radio size={14} />
-            <span className="text-xs">Heartbeat</span>
+            <span className="text-xs">Gateway</span>
           </div>
           <div className="flex items-center gap-2">
-            <StatusPulse status="online" size="sm" glow />
-            <span className="text-xs text-zinc-600 font-data dark:text-zinc-400">
-              {SYSTEM_HEALTH.lastHeartbeat} · every {SYSTEM_HEALTH.heartbeatInterval}
-            </span>
+            {gatewayOnline === true && (
+              <>
+                <Wifi size={12} className="text-emerald-500" />
+                <StatusPulse status="online" size="sm" glow />
+                <span className="text-xs text-emerald-600 font-data dark:text-emerald-400">
+                  Connected
+                </span>
+              </>
+            )}
+            {gatewayOnline === false && (
+              <>
+                <WifiOff size={12} className="text-red-500" />
+                <StatusPulse status="offline" size="sm" />
+                <span className="text-xs text-red-500 font-data">
+                  Unreachable
+                </span>
+              </>
+            )}
+            {gatewayOnline === null && (
+              <>
+                <StatusPulse status="idle" size="sm" />
+                <span className="text-xs text-zinc-400 font-data">
+                  Checking...
+                </span>
+              </>
+            )}
           </div>
         </div>
 

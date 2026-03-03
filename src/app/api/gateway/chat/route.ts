@@ -15,6 +15,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (message.length > 4000) {
+      return NextResponse.json(
+        { error: "Message too long (max 4000 characters)" },
+        { status: 400 }
+      );
+    }
+
     const res = await fetch(`${GATEWAY_URL}/v1/chat/completions`, {
       method: "POST",
       headers: {

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bot, Zap, Clock, MessageSquare, Brain, Shield } from "lucide-react";
+import { Bot, Zap, Clock, MessageSquare, Brain, Shield, WifiOff } from "lucide-react";
 import { StatusPulse } from "../status-pulse";
 import { GATEWAY, MEMORY, CHANNELS, MODELS, SKILLS, COST_DATA } from "@/lib/openclaw-data";
 
@@ -9,6 +10,14 @@ export function HeroStatus() {
   const totalMessages = CHANNELS.reduce((sum, c) => sum + c.messagesLast24h, 0);
   const activeSkills = SKILLS.filter((s) => s.status === "active").length;
   const primaryModel = MODELS.find((m) => m.role === "primary");
+  const [gatewayOnline, setGatewayOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/gateway/health")
+      .then((r) => r.json())
+      .then((d) => setGatewayOnline(d.ok === true))
+      .catch(() => setGatewayOnline(false));
+  }, []);
 
   return (
     <motion.div
@@ -28,7 +37,7 @@ export function HeroStatus() {
             <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 shadow-lg shadow-cyan-500/25">
               <Bot size={24} className="text-white" />
               <div className="absolute -bottom-0.5 -right-0.5">
-                <StatusPulse status="online" size="md" glow />
+                <StatusPulse status={gatewayOnline ? "online" : gatewayOnline === false ? "offline" : "idle"} size="md" glow />
               </div>
             </div>
             <div>
@@ -42,13 +51,31 @@ export function HeroStatus() {
             </div>
           </div>
 
-          <div className="hidden items-center gap-2 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-3 py-1.5 sm:flex dark:border-emerald-500/20 dark:bg-emerald-500/[0.08]">
-            <Zap size={12} className="text-emerald-500" />
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-              System Healthy
-            </span>
-            <StatusPulse status="online" size="sm" />
-          </div>
+          {gatewayOnline === true && (
+            <div className="hidden items-center gap-2 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-3 py-1.5 sm:flex dark:border-emerald-500/20 dark:bg-emerald-500/[0.08]">
+              <Zap size={12} className="text-emerald-500" />
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                System Healthy
+              </span>
+              <StatusPulse status="online" size="sm" />
+            </div>
+          )}
+          {gatewayOnline === false && (
+            <div className="hidden items-center gap-2 rounded-full border border-red-200/60 bg-red-50/80 px-3 py-1.5 sm:flex dark:border-red-500/20 dark:bg-red-500/[0.08]">
+              <WifiOff size={12} className="text-red-500" />
+              <span className="text-xs font-semibold text-red-700 dark:text-red-400">
+                Gateway Offline
+              </span>
+            </div>
+          )}
+          {gatewayOnline === null && (
+            <div className="hidden items-center gap-2 rounded-full border border-zinc-200/60 bg-zinc-50/80 px-3 py-1.5 sm:flex dark:border-zinc-500/20 dark:bg-zinc-500/[0.08]">
+              <Zap size={12} className="text-zinc-400 animate-pulse" />
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                Checking...
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Metric cards */}
