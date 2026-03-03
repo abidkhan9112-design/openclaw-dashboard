@@ -11,7 +11,7 @@ export function Header() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 border-b border-zinc-200/50 bg-white/60 backdrop-blur-xl dark:border-white/[0.04] dark:bg-[#06080f]/60"
+      className="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur-xl dark:border-white/[0.04] dark:bg-[#06080f]/60"
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         {/* Left — Logo & Title */}

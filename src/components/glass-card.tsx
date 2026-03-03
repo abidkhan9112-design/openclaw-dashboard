@@ -47,8 +47,8 @@ export function GlassCard({
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
       whileHover={hover ? { scale: 1.008, y: -2 } : undefined}
       className={cn(
-        "rounded-2xl border border-zinc-200/60 bg-white/70 p-5 backdrop-blur-xl transition-all duration-300",
-        "dark:border-white/[0.06] dark:bg-[rgba(15,23,42,0.5)]",
+        "rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm backdrop-blur-xl transition-all duration-300",
+        "dark:border-white/[0.06] dark:bg-[rgba(15,23,42,0.5)] dark:shadow-none",
         hover && !glow && "hover:shadow-md dark:hover:border-white/[0.1] dark:hover:shadow-cyan-500/5",
         glow && glowMap[glow],
         glow && neonBorder && neonBorderMap[glow],

@@ -27,7 +27,7 @@ const sections: { id: SectionId; label: string; icon: React.ReactNode }[] = [
 
 export function SectionNav({ active, onChange }: SectionNavProps) {
   return (
-    <nav className="sticky top-[57px] z-40 -mx-4 mb-6 border-b border-zinc-200/50 bg-white/60 px-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 dark:border-white/[0.04] dark:bg-[#06080f]/60">
+    <nav className="sticky top-[57px] z-40 -mx-4 mb-6 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 dark:border-white/[0.04] dark:bg-[#06080f]/60">
       <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto py-1 scrollbar-none">
         {sections.map((section) => (
           <button
