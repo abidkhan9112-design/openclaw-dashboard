@@ -29,7 +29,7 @@ export default function MissionControl() {
         <Header />
         <SectionNav active={activeSection} onChange={setActiveSection} />
 
-        <main className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-7xl px-3 pb-8 sm:px-6 lg:px-8">
           <AnimatePresence mode="wait">
             {activeSection === "overview" && (
               <SectionPanel key="overview">
@@ -47,7 +47,7 @@ export default function MissionControl() {
 
                 {/* Channel Status */}
                 <SectionHeader title="Channels" subtitle="Live messaging platforms" />
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {CHANNELS.map((channel, i) => (
                     <ChannelCard key={channel.id} channel={channel} index={i} />
                   ))}
@@ -55,7 +55,7 @@ export default function MissionControl() {
 
                 {/* Activity + Memory */}
                 <SectionHeader title="Activity" subtitle="Message throughput & memory" />
-                <div className="grid gap-4 lg:grid-cols-2">
+                <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
                   <ActivityChart />
                   <MemoryStats />
                 </div>
@@ -79,7 +79,7 @@ export default function MissionControl() {
             {activeSection === "operations" && (
               <SectionPanel key="operations">
                 <SectionHeader title="Operations" subtitle="Deployment, costs & system health" />
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <DeploymentStatus />
                   <CostTracker />
                   <SystemHealth />

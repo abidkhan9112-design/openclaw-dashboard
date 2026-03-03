@@ -9,7 +9,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# v3.1 cache bust — dynamic status + safety + chat redesign
+# v3.2 cache bust — light mode fix + mobile + gateway POST health
 RUN npm run build
 
 # ─── Stage 3: Production ─────────────────────────────────

@@ -24,7 +24,7 @@ export function HeroStatus() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="relative overflow-hidden rounded-2xl border border-zinc-200/60 bg-gradient-to-br from-white/80 via-white/60 to-cyan-50/30 p-6 backdrop-blur-xl dark:border-white/[0.06] dark:from-[rgba(15,23,42,0.6)] dark:via-[rgba(15,23,42,0.4)] dark:to-cyan-950/20"
+      className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/[0.06] dark:bg-[rgba(15,23,42,0.6)] dark:shadow-none"
     >
       {/* Decorative glow */}
       <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-cyan-500/10 blur-[80px] dark:bg-cyan-500/[0.08]" />

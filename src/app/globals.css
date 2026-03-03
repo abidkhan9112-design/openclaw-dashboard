@@ -3,7 +3,7 @@
 /* ─── Theme Variables ─────────────────────────────────────── */
 
 :root {
-  --background: #f8fafc;
+  --background: #ffffff;
   --foreground: #0f172a;
   --surface: rgba(255, 255, 255, 0.8);
   --surface-hover: rgba(255, 255, 255, 0.95);
@@ -23,8 +23,8 @@
   --glow-violet: 0 0 20px rgba(168, 85, 247, 0.15), 0 0 40px rgba(168, 85, 247, 0.05);
   --glow-emerald: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 40px rgba(16, 185, 129, 0.05);
 
-  /* Grid */
-  --grid-color: rgba(148, 163, 184, 0.08);
+  /* Grid — hidden in light mode */
+  --grid-color: rgba(148, 163, 184, 0.0);
   --grid-size: 40px;
 }
 

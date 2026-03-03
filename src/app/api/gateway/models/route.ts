@@ -3,16 +3,8 @@ import { NextResponse } from "next/server";
 const GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL || "http://localhost:18789";
 const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || "";
 
-export interface ModelStatusResult {
-  id: string;
-  available: boolean;
-  reason: string;
-  latencyMs?: number;
-}
-
 export async function GET() {
   try {
-    // Try gateway's /v1/models endpoint first (OpenAI-compatible)
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -20,35 +12,35 @@ export async function GET() {
       headers["Authorization"] = `Bearer ${GATEWAY_TOKEN}`;
     }
 
-    const res = await fetch(`${GATEWAY_URL}/v1/models`, {
+    // OpenClaw doesn't expose a /v1/models GET endpoint — it returns HTML.
+    // We verify the gateway is alive by sending a minimal chat completion.
+    const start = Date.now();
+    const res = await fetch(`${GATEWAY_URL}/v1/chat/completions`, {
+      method: "POST",
       headers,
-      signal: AbortSignal.timeout(8000),
+      body: JSON.stringify({
+        model: "default",
+        messages: [{ role: "user", content: "model status check" }],
+        max_tokens: 1,
+      }),
+      signal: AbortSignal.timeout(12000),
     });
+    const latencyMs = Date.now() - start;
 
     if (res.ok) {
       const data = await res.json();
-      // OpenClaw gateway returns model info if available
-      return NextResponse.json({ ok: true, models: data.data || data });
-    }
-
-    // Fallback: try health endpoint to check basic connectivity
-    const healthRes = await fetch(`${GATEWAY_URL}/health`, {
-      headers,
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (healthRes.ok) {
-      const healthData = await healthRes.json();
+      const model = data.model || "default";
       return NextResponse.json({
         ok: true,
         gatewayOnline: true,
-        health: healthData,
-        models: null, // Models endpoint not available but gateway is alive
+        activeModel: model,
+        latencyMs,
+        models: null, // Individual model status not available from gateway
       });
     }
 
     return NextResponse.json(
-      { ok: false, error: "Gateway returned error", gatewayOnline: false },
+      { ok: false, error: `Gateway returned ${res.status}`, gatewayOnline: false },
       { status: 502 }
     );
   } catch {
