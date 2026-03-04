@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         messages: [{ role: "user", content: "." }],
         max_tokens: 1,
       }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(30000),
     });
     const latencyMs = Date.now() - start;
 
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       modelId: "unknown",
       status: "unreachable",
       reason: isTimeout
-        ? "Request timed out after 20 seconds. The model may be overloaded or the gateway is too slow to respond."
+        ? "Request timed out after 30 seconds. The model may be overloaded or the provider is experiencing high latency."
         : "Failed to connect to the gateway. The bot service may be down.",
     });
   }
